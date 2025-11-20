@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "./hooks/useTheme";
 
@@ -15,14 +15,30 @@ const App: React.FC = () => {
   const [started, setStarted] = useState(false);
   const { isDark, toggleTheme } = useTheme();
 
-  // Birthday message
+  // Music reference
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  // Wishes config
   const wishesConfig: WishesConfig = {
     name: "Beautiful Soul",
     message: "May your day be filled with endless joy and magic! ✨",
     subMessage: "Wishing you all the happiness in the world! 🌟",
   };
 
-  // Auto theme switch every 10 seconds
+  // Play music after start button is clicked
+  const handleStart = () => {
+    setStarted(true);
+
+    audioRef.current = new Audio("/music/birthday.mp3");
+    audioRef.current.loop = true;
+    audioRef.current.volume = 0.6;
+
+    audioRef.current.play().catch(() => {
+      console.log("Autoplay prevented. User interaction required.");
+    });
+  };
+
+  // Auto-switch day/night every 10 seconds
   useEffect(() => {
     if (!started) return;
 
@@ -32,10 +48,6 @@ const App: React.FC = () => {
 
     return () => clearInterval(interval);
   }, [started, toggleTheme]);
-
-  const handleStart = () => {
-    setStarted(true);
-  };
 
   return (
     <div className="relative w-full h-screen overflow-hidden">
@@ -70,15 +82,15 @@ const App: React.FC = () => {
             )}
           </AnimatePresence>
 
-          {/* 3D Particle Effect */}
+          {/* 3D particles */}
           <Scene3D isDark={isDark} />
 
-          {/* Photo Frame */}
+          {/* Photo frame */}
           <div className="relative z-10 flex items-center justify-center h-full">
             <PhotoFrame isDark={isDark} />
           </div>
 
-          {/* Wishes Text */}
+          {/* Wishes text */}
           <WishesText config={wishesConfig} isDark={isDark} />
 
           {/* Confetti */}
