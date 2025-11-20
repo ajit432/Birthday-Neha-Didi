@@ -38,13 +38,7 @@ const App: React.FC = () => {
       console.log("Autoplay blocked until user clicks 🎵 button.");
     });
   }, [started]);
-
-  const toggleMusic = () => {
-    if (!audioRef.current) return;
-    if (musicPlaying) audioRef.current.pause();
-    else audioRef.current.play();
-    setMusicPlaying(!musicPlaying);
-  };
+ 
 
   // 🌞🌙 Auto theme switch every 10 sec
   useEffect(() => {
