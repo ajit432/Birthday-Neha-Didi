@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "./hooks/useTheme";
 
@@ -15,32 +15,14 @@ const App: React.FC = () => {
   const [started, setStarted] = useState(false);
   const { isDark, toggleTheme } = useTheme();
 
-  // 🎵 Music states
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [musicPlaying, setMusicPlaying] = useState(true);
-
-  // 🎉 Wishes configuration
+  // Birthday message
   const wishesConfig: WishesConfig = {
     name: "Beautiful Soul",
     message: "May your day be filled with endless joy and magic! ✨",
     subMessage: "Wishing you all the happiness in the world! 🌟",
   };
 
-  // 🎵 Play music once the celebration begins
-  useEffect(() => {
-    if (!started) return;
-
-    audioRef.current = new Audio("/music/birthday.mp3");
-    audioRef.current.loop = true;
-    audioRef.current.volume = 0.5;
-
-    audioRef.current.play().catch(() => {
-      console.log("Autoplay blocked until user clicks 🎵 button.");
-    });
-  }, [started]);
- 
-
-  // 🌞🌙 Auto theme switch every 10 sec
+  // Auto theme switch every 10 seconds
   useEffect(() => {
     if (!started) return;
 
@@ -88,7 +70,7 @@ const App: React.FC = () => {
             )}
           </AnimatePresence>
 
-          {/* 3D Particle Layer */}
+          {/* 3D Particle Effect */}
           <Scene3D isDark={isDark} />
 
           {/* Photo Frame */}
@@ -99,39 +81,7 @@ const App: React.FC = () => {
           {/* Wishes Text */}
           <WishesText config={wishesConfig} isDark={isDark} />
 
-          {/* ☀️🌙 Theme Toggle Button */}
-          {/* <motion.button
-            onClick={toggleTheme}
-            className={`
-              fixed bottom-8 right-8 z-50 p-4 rounded-full shadow-2xl
-              ${
-                isDark
-                  ? "bg-yellow-400 text-gray-900 hover:bg-yellow-300"
-                  : "bg-indigo-600 text-white hover:bg-indigo-700"
-              }
-              transition-all duration-300
-            `}
-            whileHover={{ scale: 1.1, rotate: 180 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <span className="text-3xl">{isDark ? "☀️" : "🌙"}</span>
-          </motion.button> */}
-
-          {/* 🎵 Music Toggle Button */}
-          {/* <motion.button
-            onClick={toggleMusic}
-            className="
-              fixed bottom-8 left-8 z-50 p-4 rounded-full
-              bg-pink-500 text-white shadow-2xl hover:bg-pink-600
-              transition-all duration-300
-            "
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <span className="text-3xl">{musicPlaying ? "🔊" : "🔈"}</span>
-          </motion.button> */}
-
-          {/* 🎉 Confetti */}
+          {/* Confetti */}
           {[...Array(20)].map((_, i) => (
             <motion.div
               key={`confetti-${i}`}
