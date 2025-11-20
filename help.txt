@@ -1,0 +1,1136 @@
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import './index.css';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+);
+
+
+
+
+------------------------------------------------------
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer utilities {
+  .text-shadow {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .text-shadow-lg {
+    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.2);
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(107, 114, 128, 0.7);
+}
+------------------------------------------------------
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from './hooks/useTheme';
+import StartButton from './components/StartButton';
+import DayScene from './components/DayScene';
+import NightScene from './components/NightScene';
+import PhotoFrame from './components/PhotoFrame';
+import WishesText from './components/WishesText';
+import Scene3D from './components/Scene3D';
+import type { WishesConfig } from './types';
+
+const App: React.FC = () => {
+  const [started, setStarted] = useState(false);
+  const { isDark, toggleTheme } = useTheme();
+
+  // Customize this configuration
+  const wishesConfig: WishesConfig = {
+    name: "Beautiful Soul",
+    message: "May your day be filled with endless joy and magic! ✨",
+    subMessage: "Wishing you all the happiness in the world! 🌟"
+  };
+
+  // Auto-toggle theme every 10 seconds after start
+  useEffect(() => {
+    if (!started) return;
+    
+    const interval = setInterval(() => {
+      toggleTheme();
+    }, 10000); // Change theme every 10 seconds
+
+    return () => clearInterval(interval);
+  }, [started, toggleTheme]);
+
+  const handleStart = () => {
+    setStarted(true);
+  };
+
+  return (
+    <div className="relative w-full h-screen overflow-hidden">
+      <AnimatePresence>
+        {!started && <StartButton onStart={handleStart} />}
+      </AnimatePresence>
+
+      {started && (
+        <>
+          {/* Background Scene */}
+          <AnimatePresence mode="wait">
+            {isDark ? (
+              <motion.div
+                key="night"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 2 }}
+              >
+                <NightScene />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="day"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 2 }}
+              >
+                <DayScene />
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* 3D Particle Effect */}
+          <Scene3D isDark={isDark} />
+
+          {/* Content Container */}
+          <div className="relative z-10 flex items-center justify-center h-full">
+            <PhotoFrame isDark={isDark} />
+          </div>
+
+          {/* Wishes Text Overlay */}
+          <WishesText config={wishesConfig} isDark={isDark} />
+
+          {/* Theme Toggle Button */}
+          <motion.button
+            onClick={toggleTheme}
+            className={`
+              fixed bottom-8 right-8 z-50 p-4 rounded-full shadow-2xl
+              ${isDark 
+                ? 'bg-yellow-400 text-gray-900 hover:bg-yellow-300' 
+                : 'bg-indigo-600 text-white hover:bg-indigo-700'
+              }
+              transition-all duration-300
+            `}
+            whileHover={{ scale: 1.1, rotate: 180 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <span className="text-3xl">{isDark ? '☀️' : '🌙'}</span>
+          </motion.button>
+
+          {/* Confetti effect */}
+          {[...Array(50)].map((_, i) => (
+            <motion.div
+              key={`confetti-${i}`}
+              initial={{ 
+                y: -100, 
+                x: Math.random() * window.innerWidth,
+                rotate: 0,
+                opacity: 1
+              }}
+              animate={{
+                y: window.innerHeight + 100,
+                rotate: 360 * 3,
+                opacity: [1, 1, 0],
+              }}
+              transition={{
+                duration: 3 + Math.random() * 2,
+                repeat: Infinity,
+                delay: i * 0.1,
+                ease: "linear",
+              }}
+              className="fixed pointer-events-none z-40"
+            >
+              <span className="text-2xl">
+                {['🎉', '🎊', '🎈', '🎁', '💝', '⭐', '💫', '🌟'][i % 8]}
+              </span>
+            </motion.div>
+          ))}
+        </>
+      )}
+    </div>
+  );
+};
+
+export default App;
+------------------------------------------------------
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+------------------------------------------------------
+export interface ThemeType {
+  isDark: boolean;
+  toggleTheme: () => void;
+}
+
+export interface Particle {
+  id: number;
+  x: number;
+  y: number;
+  size: number;
+  speedX: number;
+  speedY: number;
+  opacity: number;
+}
+
+export interface WishesConfig {
+  name: string;
+  age?: number;
+  message: string;
+  subMessage?: string;
+}
+
+
+------------------------------------------------------
+import { useState, useEffect } from 'react';
+
+export const useTheme = () => {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (isDark) {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [isDark]);
+
+  const toggleTheme = () => setIsDark(!isDark);
+
+  return { isDark, toggleTheme };
+};
+
+
+------------------------------------------------------
+import React from 'react';
+import { motion } from 'framer-motion';
+import type { WishesConfig } from '../types';
+
+interface WishesTextProps {
+  config: WishesConfig;
+  isDark: boolean;
+}
+
+const WishesText: React.FC<WishesTextProps> = ({ config, isDark }) => {
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-4">
+      {/* Top wishes */}
+      <motion.div
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 1, duration: 1 }}
+        className="mb-auto mt-8 md:mt-16 text-center"
+      >
+        <motion.h1
+          animate={{ 
+            scale: [1, 1.05, 1],
+          }}
+          transition={{ 
+            repeat: Infinity,
+            duration: 2 
+          }}
+          className={`
+            text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold
+            ${isDark 
+              ? 'text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-400 to-indigo-400' 
+              : 'text-transparent bg-clip-text bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600'
+            }
+          `}
+        >
+          Happy Birthday
+        </motion.h1>
+        
+        <motion.h2
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 1.5, type: "spring" }}
+          className={`
+            text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mt-4
+            ${isDark ? 'text-pink-300' : 'text-purple-700'}
+          `}
+        >
+          {config.name} 🎉
+        </motion.h2>
+      </motion.div>
+
+      {/* Bottom message */}
+      <motion.div
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 2, duration: 1 }}
+        className="mt-auto mb-8 md:mb-16 text-center max-w-4xl"
+      >
+        <motion.p
+          animate={{ 
+            opacity: [0.8, 1, 0.8],
+          }}
+          transition={{ 
+            repeat: Infinity,
+            duration: 3 
+          }}
+          className={`
+            text-xl sm:text-2xl md:text-3xl lg:text-4xl font-semibold
+            ${isDark ? 'text-white' : 'text-gray-800'}
+          `}
+        >
+          {config.message}
+        </motion.p>
+        
+        {config.subMessage && (
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 2.5 }}
+            className={`
+              text-lg sm:text-xl md:text-2xl mt-4
+              ${isDark ? 'text-purple-200' : 'text-purple-600'}
+            `}
+          >
+            {config.subMessage}
+          </motion.p>
+        )}
+      </motion.div>
+    </div>
+  );
+};
+
+export default WishesText;
+
+------------------------------------------------------
+
+import React from 'react';
+import { motion } from 'framer-motion';
+
+interface StartButtonProps {
+  onStart: () => void;
+}
+
+const StartButton: React.FC<StartButtonProps> = ({ onStart }) => {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-pink-100 via-purple-100 to-blue-100 dark:from-gray-900 dark:via-purple-900 dark:to-indigo-900">
+      <motion.div
+        initial={{ scale: 0, rotate: -180 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ 
+          type: "spring",
+          stiffness: 260,
+          damping: 20,
+          duration: 1 
+        }}
+        className="text-center"
+      >
+        <motion.h1 
+          className="text-4xl md:text-6xl lg:text-7xl font-bold mb-8 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent"
+          animate={{ 
+            scale: [1, 1.05, 1],
+          }}
+          transition={{ 
+            repeat: Infinity,
+            duration: 2 
+          }}
+        >
+          🎂 Special Day 🎂
+        </motion.h1>
+        
+        <motion.button
+          onClick={onStart}
+          className="px-12 py-6 text-2xl md:text-3xl font-bold text-white bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-full shadow-2xl hover:shadow-pink-500/50 transition-all duration-300"
+          whileHover={{ 
+            scale: 1.1,
+            boxShadow: "0 0 25px rgba(236, 72, 153, 0.6)"
+          }}
+          whileTap={{ scale: 0.95 }}
+          animate={{
+            y: [0, -10, 0],
+          }}
+          transition={{
+            repeat: Infinity,
+            duration: 2,
+          }}
+        >
+          🎁 Click to Celebrate 🎁
+        </motion.button>
+
+        <motion.p
+          className="mt-6 text-lg md:text-xl text-gray-600 dark:text-gray-300"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          Something magical awaits...
+        </motion.p>
+      </motion.div>
+    </div>
+  );
+};
+
+export default StartButton;
+
+------------------------------------------------------
+import React, { useRef } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Points, PointMaterial, OrbitControls } from '@react-three/drei';
+import * as THREE from 'three';
+
+interface ParticleFieldProps {
+  isDark: boolean;
+}
+
+const ParticleField: React.FC<ParticleFieldProps> = ({ isDark }) => {
+  const points = useRef<THREE.Points>(null);
+  
+  const particleCount = 2000;
+  const positions = new Float32Array(particleCount * 3);
+
+  for (let i = 0; i < particleCount; i++) {
+    const i3 = i * 3;
+    positions[i3] = (Math.random() - 0.5) * 10;
+    positions[i3 + 1] = (Math.random() - 0.5) * 10;
+    positions[i3 + 2] = (Math.random() - 0.5) * 10;
+  }
+
+  useFrame((state) => {
+    if (points.current) {
+      points.current.rotation.x = state.clock.getElapsedTime() * 0.05;
+      points.current.rotation.y = state.clock.getElapsedTime() * 0.075;
+    }
+  });
+
+  return (
+    <Points ref={points} positions={positions} stride={3} frustumCulled={false}>
+      <PointMaterial
+        transparent
+        color={isDark ? '#a78bfa' : '#ec4899'}
+        size={0.02}
+        sizeAttenuation={true}
+        depthWrite={false}
+        opacity={isDark ? 0.8 : 0.6}
+      />
+    </Points>
+  );
+};
+
+interface Scene3DProps {
+  isDark: boolean;
+}
+
+const Scene3D: React.FC<Scene3DProps> = ({ isDark }) => {
+  return (
+    <div className="fixed inset-0 -z-10 opacity-30">
+      <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
+        <ambientLight intensity={0.5} />
+        <ParticleField isDark={isDark} />
+        <OrbitControls
+          enableZoom={false}
+          enablePan={false}
+          autoRotate
+          autoRotateSpeed={0.5}
+        />
+      </Canvas>
+    </div>
+  );
+};
+
+export default Scene3D;
+
+
+------------------------------------------------------
+import React from 'react';
+import { motion } from 'framer-motion';
+
+interface PhotoFrameProps {
+  isDark: boolean;
+}
+
+const PhotoFrame: React.FC<PhotoFrameProps> = ({ isDark }) => {
+  return (
+    <motion.div
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ 
+        delay: 0.5,
+        type: "spring",
+        stiffness: 200 
+      }}
+      className="relative z-10"
+    >
+      <motion.div
+        animate={{ 
+          rotate: [0, 5, -5, 0],
+          y: [0, -10, 0]
+        }}
+        transition={{ 
+          repeat: Infinity,
+          duration: 4,
+          ease: "easeInOut"
+        }}
+        className="relative"
+      >
+        {/* Decorative rings */}
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute -inset-8 rounded-full border-4 border-dashed border-pink-400 dark:border-purple-400 opacity-50"
+        />
+        
+        <motion.div
+          animate={{ rotate: -360 }}
+          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+          className="absolute -inset-12 rounded-full border-4 border-dotted border-purple-400 dark:border-indigo-400 opacity-30"
+        />
+
+        {/* Photo container */}
+        <div className={`
+          relative w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96
+          rounded-full overflow-hidden shadow-2xl
+          ${isDark 
+            ? 'ring-8 ring-purple-500/50 shadow-purple-500/50' 
+            : 'ring-8 ring-pink-400/50 shadow-pink-500/50'
+          }
+        `}>
+          <img
+            src="/assets/photo.jpg"
+            alt="Birthday Girl"
+            className="w-full h-full object-cover"
+          />
+          
+          {/* Overlay gradient */}
+          <div className={`
+            absolute inset-0 
+            ${isDark 
+              ? 'bg-gradient-to-t from-purple-900/30 to-transparent' 
+              : 'bg-gradient-to-t from-pink-200/30 to-transparent'
+            }
+          `} />
+        </div>
+
+        {/* Floating particles around photo */}
+        {[...Array(8)].map((_, i) => (
+          <motion.div
+            key={i}
+            animate={{
+              rotate: 360,
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              rotate: { duration: 10, repeat: Infinity, ease: "linear" },
+              scale: { duration: 2, repeat: Infinity, delay: i * 0.2 }
+            }}
+            className="absolute"
+            style={{
+              top: '50%',
+              left: '50%',
+              transform: `rotate(${i * 45}deg) translateY(-180px)`,
+            }}
+          >
+            <span className="text-3xl">
+              {isDark ? '✨' : ['🌸', '🦋', '🌺', '🌼', '🌷', '🌻', '🌹', '💐'][i]}
+            </span>
+          </motion.div>
+        ))}
+      </motion.div>
+    </motion.div>
+  );
+};
+
+export default PhotoFrame;
+------------------------------------------------------
+import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import type { Particle } from '../types';
+
+const NightScene: React.FC = () => {
+  const [stars, setStars] = useState<Particle[]>([]);
+
+  useEffect(() => {
+    const createStars = () => {
+      const newStars: Particle[] = [];
+      for (let i = 0; i < 150; i++) {
+        newStars.push({
+          id: i,
+          x: Math.random() * 100,
+          y: Math.random() * 100,
+          size: Math.random() * 3 + 1,
+          speedX: 0,
+          speedY: 0,
+          opacity: Math.random() * 0.8 + 0.2,
+        });
+      }
+      setStars(newStars);
+    };
+
+    createStars();
+  }, []);
+
+  return (
+    <div className="fixed inset-0 overflow-hidden bg-gradient-to-b from-indigo-950 via-purple-900 to-indigo-900">
+      {/* Stars */}
+      {stars.map((star) => (
+        <motion.div
+          key={star.id}
+          animate={{
+            opacity: [star.opacity, star.opacity * 0.3, star.opacity],
+            scale: [1, 1.5, 1],
+          }}
+          transition={{
+            duration: 2 + Math.random() * 3,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: Math.random() * 2,
+          }}
+          className="absolute rounded-full bg-white"
+          style={{
+            left: `${star.x}%`,
+            top: `${star.y}%`,
+            width: `${star.size}px`,
+            height: `${star.size}px`,
+            boxShadow: `0 0 ${star.size * 2}px rgba(255, 255, 255, 0.8)`,
+          }}
+        />
+      ))}
+
+      {/* Moon */}
+      <motion.div
+        animate={{
+          y: [0, -20, 0],
+          scale: [1, 1.05, 1],
+        }}
+        transition={{
+          duration: 6,
+          repeat: Infinity,
+          ease: "easeInOut",
+        }}
+        className="absolute top-12 right-12 md:top-20 md:right-20 w-20 h-20 md:w-32 md:h-32 lg:w-40 lg:h-40"
+      >
+        <div className="relative w-full h-full">
+          <div className="absolute inset-0 bg-yellow-100 rounded-full shadow-2xl shadow-yellow-200/50"></div>
+          <div className="absolute inset-2 bg-yellow-50 rounded-full"></div>
+          {/* Moon craters */}
+          <div className="absolute top-4 left-6 w-4 h-4 md:w-6 md:h-6 bg-gray-200 rounded-full opacity-30"></div>
+          <div className="absolute top-10 right-8 w-3 h-3 md:w-5 md:h-5 bg-gray-200 rounded-full opacity-30"></div>
+          <div className="absolute bottom-6 left-10 w-5 h-5 md:w-7 md:h-7 bg-gray-200 rounded-full opacity-30"></div>
+        </div>
+        {/* Moon glow */}
+        <div className="absolute inset-0 bg-yellow-200 rounded-full blur-xl opacity-40 animate-pulse"></div>
+      </motion.div>
+
+      {/* Shooting stars */}
+      {[...Array(5)].map((_, i) => (
+        <motion.div
+          key={`shooting-${i}`}
+          animate={{
+            x: ['-10%', '120%'],
+            y: ['0%', '50%'],
+            opacity: [0, 1, 1, 0],
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            delay: i * 4 + 2,
+            ease: "easeOut",
+          }}
+          className="absolute top-0 left-0"
+        >
+          <div className="w-1 h-1 bg-white rounded-full shadow-lg shadow-white">
+            <div className="absolute top-0 left-0 w-20 h-0.5 bg-gradient-to-r from-white to-transparent transform -rotate-45"></div>
+          </div>
+        </motion.div>
+      ))}
+
+      {/* Floating sparkles */}
+      {[...Array(30)].map((_, i) => (
+        <motion.div
+          key={`sparkle-${i}`}
+          animate={{
+            y: [
+              `${50 + (i % 10) * 5}%`,
+              `${30 + (i % 10) * 5}%`,
+              `${50 + (i % 10) * 5}%`
+            ],
+            x: [
+              `${(i % 10) * 10}%`,
+              `${(i % 10) * 10 + 5}%`,
+              `${(i % 10) * 10}%`
+            ],
+            rotate: [0, 180, 360],
+            scale: [1, 1.5, 1],
+          }}
+          transition={{
+            duration: 5 + (i % 3),
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: i * 0.1,
+          }}
+          className="absolute text-xl md:text-2xl lg:text-3xl"
+        >
+          ✨
+        </motion.div>
+      ))}
+
+      {/* Milky Way effect */}
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute top-0 left-1/4 w-1/2 h-full bg-gradient-to-b from-transparent via-purple-300 to-transparent transform rotate-45 blur-3xl opacity-20"></div>
+      </div>
+
+      {/* Galaxy particles */}
+      {[...Array(20)].map((_, i) => (
+        <motion.div
+          key={`galaxy-${i}`}
+          animate={{
+            rotate: 360,
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            rotate: { duration: 20, repeat: Infinity, ease: "linear" },
+            scale: { duration: 3, repeat: Infinity, delay: i * 0.1 }
+          }}
+          className="absolute"
+          style={{
+            top: '50%',
+            left: '50%',
+            transform: `rotate(${i * 18}deg) translateY(-${200 + i * 20}px)`,
+          }}
+        >
+          <div className="w-2 h-2 bg-purple-400 rounded-full blur-sm opacity-60"></div>
+        </motion.div>
+      ))}
+
+      {/* Constellation effect */}
+      <svg className="absolute inset-0 w-full h-full opacity-20">
+        <defs>
+          <linearGradient id="constellation-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#a78bfa" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#c084fc" stopOpacity="0.3" />
+          </linearGradient>
+        </defs>
+        {/* Draw some constellation lines */}
+        <motion.path
+          d="M 100 100 L 200 150 L 300 100 L 200 50 Z"
+          stroke="url(#constellation-gradient)"
+          strokeWidth="1"
+          fill="none"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 3, repeat: Infinity, repeatType: "reverse" }}
+        />
+      </svg>
+    </div>
+  );
+};
+
+export default NightScene;
+
+------------------------------------------------------
+import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import type { Particle } from '../types';
+
+const DayScene: React.FC = () => {
+  const [particles, setParticles] = useState<Particle[]>([]);
+
+  useEffect(() => {
+    const createParticles = () => {
+      const newParticles: Particle[] = [];
+      for (let i = 0; i < 30; i++) {
+        newParticles.push({
+          id: i,
+          x: Math.random() * 100,
+          y: Math.random() * 100,
+          size: Math.random() * 30 + 20,
+          speedX: (Math.random() - 0.5) * 0.5,
+          speedY: Math.random() * -0.3 - 0.2,
+          opacity: Math.random() * 0.5 + 0.5,
+        });
+      }
+      setParticles(newParticles);
+    };
+
+    createParticles();
+  }, []);
+
+  const elements = ['🌸', '🦋', '🌺', '🌼', '🌷', '🌻', '☀️', '🌈', '🦜', '🌹'];
+
+  return (
+    <div className="fixed inset-0 overflow-hidden bg-gradient-to-b from-sky-300 via-sky-200 to-green-100">
+      {/* Animated sun */}
+      <motion.div
+        animate={{ 
+          scale: [1, 1.1, 1],
+          rotate: 360,
+        }}
+        transition={{ 
+          scale: { repeat: Infinity, duration: 4 },
+          rotate: { repeat: Infinity, duration: 30, ease: "linear" }
+        }}
+        className="absolute top-8 right-8 md:top-16 md:right-16 w-16 h-16 md:w-24 md:h-24 lg:w-32 lg:h-32 bg-yellow-300 rounded-full shadow-2xl shadow-yellow-400/50"
+      >
+        <div className="absolute inset-2 bg-yellow-200 rounded-full"></div>
+        <div className="absolute inset-4 bg-yellow-100 rounded-full"></div>
+      </motion.div>
+
+      {/* Clouds */}
+      {[...Array(6)].map((_, i) => (
+        <motion.div
+          key={`cloud-${i}`}
+          animate={{
+            x: ['-20%', '120%'],
+          }}
+          transition={{
+            duration: 30 + i * 5,
+            repeat: Infinity,
+            ease: "linear",
+            delay: i * 2,
+          }}
+          className="absolute"
+          style={{
+            top: `${10 + i * 15}%`,
+            left: '-20%',
+          }}
+        >
+          <div className="relative">
+            <div className="w-16 h-8 md:w-24 md:h-12 lg:w-32 lg:h-16 bg-white rounded-full opacity-80"></div>
+            <div className="absolute top-2 left-6 w-12 h-6 md:w-20 md:h-10 lg:w-24 lg:h-12 bg-white rounded-full opacity-80"></div>
+            <div className="absolute top-1 left-12 w-14 h-7 md:w-22 md:h-11 lg:w-28 lg:h-14 bg-white rounded-full opacity-80"></div>
+          </div>
+        </motion.div>
+      ))}
+
+      {/* Floating spring elements */}
+      {particles.map((particle) => (
+        <motion.div
+          key={particle.id}
+          animate={{
+            x: [
+              `${particle.x}vw`,
+              `${particle.x + particle.speedX * 100}vw`,
+              `${particle.x}vw`
+            ],
+            y: [
+              `${particle.y}vh`,
+              `${particle.y + particle.speedY * 100}vh`,
+              `${particle.y}vh`
+            ],
+            rotate: [0, 360],
+            scale: [1, 1.2, 1],
+          }}
+          transition={{
+            duration: 8 + Math.random() * 4,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+          className="absolute pointer-events-none"
+          style={{
+            fontSize: `${particle.size}px`,
+            opacity: particle.opacity,
+          }}
+        >
+          {elements[particle.id % elements.length]}
+        </motion.div>
+      ))}
+
+      {/* Birds */}
+      {[...Array(5)].map((_, i) => (
+        <motion.div
+          key={`bird-${i}`}
+          animate={{
+            x: ['-10%', '110%'],
+            y: [
+              `${20 + i * 10}%`,
+              `${15 + i * 10}%`,
+              `${20 + i * 10}%`
+            ],
+          }}
+          transition={{
+            x: { duration: 20 + i * 3, repeat: Infinity, ease: "linear" },
+            y: { duration: 3, repeat: Infinity, ease: "easeInOut" }
+          }}
+          className="absolute text-2xl md:text-3xl"
+        >
+          🦜
+        </motion.div>
+      ))}
+
+      {/* Ground grass effect */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 md:h-48 bg-gradient-to-t from-green-400 via-green-300 to-transparent">
+        <div className="absolute bottom-0 left-0 right-0 h-16 bg-green-500 opacity-50"></div>
+      </div>
+
+      {/* Flowers on ground */}
+      <div className="absolute bottom-4 left-0 right-0 flex justify-around px-4">
+        {['🌷', '🌺', '🌻', '🌸', '🌼', '🌹'].map((flower, i) => (
+          <motion.div
+            key={`flower-${i}`}
+            animate={{
+              rotate: [-5, 5, -5],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: 2 + i * 0.2,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+            className="text-3xl md:text-5xl lg:text-6xl"
+          >
+            {flower}
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default DayScene;
+
+------------------------------------------------------
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Special Birthday Wishes" />
+    <title>🎂 Happy Birthday 🎂</title>
+    
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
+
+------------------------------------------------------
+{
+  "name": "birthday-wishes",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+  },
+  "dependencies": {
+    "@react-three/drei": "^9.92.0",
+    "@react-three/fiber": "^8.15.0",
+    "framer-motion": "^10.16.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "three": "^0.160.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "@types/three": "^0.160.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "autoprefixer": "^10.4.22",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.18",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0"
+  }
+}
+
+
+------------------------------------------------------
+
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+};
+
+------------------------------------------------------
+export default {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+
+------------------------------------------------------
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+};
+
+------------------------------------------------------
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "types": ["vite/client"],
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": ["src"]
+}
+
+------------------------------------------------------
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
+------------------------------------------------------
+{
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true
+  },
+  "include": ["vite.config.ts"]
+}
+------------------------------------------------------
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 3000,
+    open: true,
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+    minify: 'terser',
+  },
+}); 
